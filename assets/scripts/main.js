@@ -24,6 +24,7 @@ async function init() {
   } catch (err) {
     console.error(err);
   }
+  
   // Add each recipe to the <main> element
   addRecipesToDocument(recipes);
 }
@@ -68,16 +69,58 @@ async function getRecipes() {
   // EXPOSE - START (All expose numbers start with A)
   // A1. TODO - Check local storage to see if there are any recipes.
   //            If there are recipes, return them.
+  let a1 = localStorage.getItem('recipes');
+  if(a1 != null){
+    return JSON.parse(a1);
+  }
+  
   /**************************/
   // The rest of this method will be concerned with requesting the recipes
   // from the network
   // A2. TODO - Create an empty array to hold the recipes that you will fetch
+  const recips = [];
   // A3. TODO - Return a new Promise. If you are unfamiliar with promises, MDN
   //            has a great article on them. A promise takes one parameter - A
   //            function (we call these callback functions). That function will
   //            take two parameters - resolve, and reject. These are functions
   //            you can call to either resolve the Promise or Reject it.
+  
   /**************************/
+  const p = new Promise(async (res, rej) => {
+    for(let i = 0; i < RECIPE_URLS.length; i++){
+      try{
+        const resp = await fetch(RECIPE_URLS[i]);
+        const A7 = await resp.json();
+        console.log(typeof(A7));
+        
+        const add = {
+          "imgSrc": A7.imgSrc,
+          "imgAlt": A7.imgAlt,
+          "titleLnk": A7.titleLnk,
+          "titleTxt": A7.titleTxt,
+          "organization": A7.organization,
+          "rating": A7.rating,
+          "numRatings": A7.numRatings,
+          "lengthTime": A7.lengthTime,
+          "ingredients": A7.ingredients
+        }
+        
+        recips.push(A7);
+        console.log(recips);
+        console.log(typeof(recips));
+        if(i == RECIPE_URLS.length-1){
+          
+          saveRecipesToStorage(recips);
+          res(recips)
+        }
+      }
+      catch(err){
+        console.error(err);
+        rej(err);
+      }
+    }
+  });
+  
   // A4-A11 will all be *inside* the callback function we passed to the Promise
   // we're returning
   /**************************/
@@ -121,6 +164,7 @@ function saveRecipesToStorage(recipes) {
 function addRecipesToDocument(recipes) {
   if (!recipes) return;
   let main = document.querySelector('main');
+  console.log(typeof(recipes));
   recipes.forEach((recipe) => {
     let recipeCard = document.createElement('recipe-card');
     recipeCard.data = recipe;
